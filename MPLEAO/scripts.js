@@ -159,7 +159,7 @@ function quantidadeKeyDown(event, index) {
     const qtdInput = document.getElementById(`qtd-rapida-${index}`);
     const quantidade = qtdInput ? parseInt(qtdInput.value) || 1 : 1;
 
-    if (produto.estoque_atual !== undefined && quantidade > produto.estoque_atual) {
+    if (window.controleEstoqueAtivo && produto.estoque_atual !== undefined && quantidade > produto.estoque_atual) {
         Swal.fire({ icon: 'warning', title: 'Quantidade maior que estoque', text: `Estoque atual: ${produto.estoque_atual} ${produto.unidade || 'un'}`, confirmButtonColor: '#3b82f6' });
         return;
     }
