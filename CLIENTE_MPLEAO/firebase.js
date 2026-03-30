@@ -1834,7 +1834,7 @@ async function salvarPedidoAtual() {
 
     // Desconto é percentual — converte para reais antes de subtrair
     const valorDesconto = subtotal * (pctDesconto / 100);
-    const valorTotal = subtotal - valorDesconto + valorFreteTotal + acrescimo;
+    const valorTotal = Math.round((subtotal - valorDesconto + valorFreteTotal + acrescimo) * 100) / 100;
 
 
     if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Salvando...'; }
@@ -2066,8 +2066,19 @@ window.abrirPedidoParaEdicao = function(id) {
     document.getElementById('input-primeiro-vencimento').value = pedido.primeiro_vencimento || '';
     document.getElementById('input-km').value      = pedido.frete_km      > 0 ? pedido.frete_km      : '0';
     document.getElementById('input-pedagio').value = pedido.frete_pedagio > 0 ? pedido.frete_pedagio : '';
-    if (pedido.frete_litro)   document.getElementById('input-litro').value   = pedido.frete_litro;
     if (pedido.frete_consumo) document.getElementById('input-consumo').value = pedido.frete_consumo;
+    if (pedido.frete_litro) {
+        document.getElementById('input-litro').value = pedido.frete_litro;
+    } else if (pedido.frete_valor_total > 0 && pedido.frete_km > 0) {
+        // Pedido importado sem frete_litro/frete_consumo salvos — back-calcula o litro
+        // para que o frete exibido bata com o valor original gravado no banco
+        const consumoAtual = parseFloat(document.getElementById('input-consumo')?.value) || 9;
+        const combustivelSalvo = pedido.frete_valor_total - (pedido.frete_pedagio || 0);
+        const litroRecalc = combustivelSalvo / ((pedido.frete_km / consumoAtual) * 2);
+        if (litroRecalc > 0 && isFinite(litroRecalc)) {
+            document.getElementById('input-litro').value = litroRecalc.toFixed(4);
+        }
+    }
     document.getElementById('input-previsao').value = pedido.previsao_entrega || '';
     document.getElementById('input-desconto').value = pedido.desconto > 0 ? pedido.desconto : '';
     document.getElementById('input-acrescimo').value = pedido.acrescimo > 0 ? pedido.acrescimo.toFixed(2).replace('.',',') : '';
